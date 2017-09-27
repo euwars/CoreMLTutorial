@@ -10,13 +10,13 @@ import UIKit
 import CoreML
 
 class ViewController: UIViewController {
-
+    
     override func viewDidLoad() {
         super.viewDidLoad()
-
+        
         let wordsFile = Bundle.main.path(forResource: "testMessage", ofType: "txt")
         let wordsFileText = try! String(contentsOfFile: wordsFile!, encoding: String.Encoding.utf8).lowercased().prepared
-        let tfidf = String.tfidf(message: wordsFileText)
+        let tfidf = wordsFileText.tfidf()
         let res = try! MessageClassifier().prediction(message: tfidf)
         print("your message is \(res.label) with the probability: \(res.classProbability)")
     }
@@ -51,7 +51,7 @@ extension String {
         return x.joined().removeArabic.condensedWhitespace
     }
     
-    static func tfidf(message: String) -> MLMultiArray {
+    func tfidf() -> MLMultiArray {
         let wordsFile = Bundle.main.path(forResource: "Words", ofType: "txt")
         let smsFile = Bundle.main.path(forResource: "Archive", ofType: "txt")
         do {
@@ -61,11 +61,11 @@ extension String {
             let smsFileText = try String(contentsOfFile: smsFile!, encoding: String.Encoding.utf8)
             var smsData = smsFileText.components(separatedBy: .newlines)
             smsData.removeLast()
-            let wordsInMessage = message.split(separator: " ")
+            let wordsInMessage = self.split(separator: " ")
             let vectorized = try MLMultiArray(shape: [NSNumber(integerLiteral: wordsData.count)], dataType: MLMultiArrayDataType.double)
             for i in 0..<wordsData.count{
                 let word = wordsData[i]
-                if message.contains(word){
+                if self.contains(word){
                     var wordCount = 0
                     for substr in wordsInMessage{
                         if substr.elementsEqual(word){
